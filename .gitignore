@@ -1,11 +1,11 @@
-dataset
+dataset/*
 fib_logits
 mc_logits
 train-*
 logs/
 fib_logits
 checkpoints/
-videocap/checkpoint
+videocap/checkpoint/*
 tags
 coco
 runs

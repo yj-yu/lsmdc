@@ -12,6 +12,7 @@ class ModelConfig(object):
 
     def __init__(self):
         self.batch_size = 32
+        self.ret_batch_size = 10
 
         self.video_height = 299
         self.video_width = 299
@@ -51,8 +52,8 @@ class TrainConfig(object):
         self.max_grad_norm = 5.0
 
         self.steps_per_logging = 500
-        self.steps_per_evaluate = 10000
-        self.train_tag = 'MC'
+        self.steps_per_evaluate = 5000
+        self.train_tag = 'FIB'
 
         self.load_from_ckpt = None
         self.print_evaluate = False

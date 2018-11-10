@@ -101,7 +101,7 @@ class DatasetLSMDC():
         if self.data_type is None:
             self.data_type = 'CAP'
 
-        assert self.data_type in ['FIB', 'MC'], 'Should choose data type in [FIB, MC]'
+        assert self.data_type in ['CAP', 'FIB', 'MC', 'RET'], 'Should choose data type in [CAP, FIB, MC]'
 
         train_data_path = os.path.join(DATAFRAME_DIR, 'LSMDC16_'+self.data_type+'_train.csv')
         train_cap_path = os.path.join(DATAFRAME_DIR, 'LSMDC16_CAP_train.csv')
@@ -110,11 +110,11 @@ class DatasetLSMDC():
         test_data_path = os.path.join(DATAFRAME_DIR, 'LSMDC16_'+self.data_type+'_test.csv')
         test_cap_path = os.path.join(DATAFRAME_DIR, 'LSMDC16_CAP_test.csv')
         blind_data_path = os.path.join(DATAFRAME_DIR, 'LSMDC16_'+self.data_type+'_blindtest.csv')
+        par_cap_path = os.path.join(DATAFRAME_DIR, 'Paraphrase_CAP_train.csv')
 
         train_cap_df = pd.read_csv(train_cap_path, sep='\t')
         val_cap_df = pd.read_csv(val_cap_path, sep='\t')
         test_cap_df = pd.read_csv(test_cap_path, sep='\t')
-
         if self.dataset_name == 'train':
             if self.data_type in ['MC']:
                 train_data_path = train_cap_path
@@ -123,9 +123,8 @@ class DatasetLSMDC():
                 if self.data_type == 'FIB':
                     val_fib_df = pd.read_csv(val_data_path, sep='\t')
                     data_df = pd.concat([data_df,val_fib_df])
-                if self.data_type in ['MC']:
+                if self.data_type in ['MC','CAP']:
                     val_cap_df = pd.read_csv(val_cap_path, sep='\t')
-                    data_df = pd.concat([data_df, val_cap_df])
         elif self.dataset_name == 'validation':
             data_df = pd.read_csv(val_data_path, sep='\t')
         elif self.dataset_name == 'test':
@@ -529,6 +528,44 @@ class DatasetLSMDC():
             'row_indices': batch_row_indices
         }
         return ret
+
+    def get_RET_result(self, y_keys,x_keys, neg=True):
+        batch_size = len(y_keys)
+        batch_video_feature_convmap = np.zeros([batch_size]
+                                               + list(self.get_video_feature_dimension()),
+                                               dtype=np.float32)
+        batch_caption = np.zeros([batch_size, self.max_length], dtype=np.uint32)
+
+        batch_video_mask = np.zeros([batch_size, self.max_length], dtype=np.uint32)
+        batch_caption_mask = np.zeros([batch_size, self.max_length], dtype=np.uint32)
+
+        batch_debug_sent = np.asarray([None] * batch_size)
+
+        for k in xrange(batch_size):
+            x_key = x_keys[k]
+            y_key = y_keys[k]
+            video_feature = self.get_video_feature(y_key)
+            video_mask = self.get_video_mask(video_feature)
+            caption = self.get_description(x_key)
+            caption_mask = self.get_sentence_mask(caption)
+            batch_video_feature_convmap[k, :] = data_util.pad_video(video_feature,
+                                                                    self.get_video_feature_dimension())
+            batch_caption[k, :len(caption)] = caption
+            batch_video_mask[k] = video_mask
+            batch_caption_mask[k] = caption_mask
+
+            batch_debug_sent[k] = self.data_df.loc[x_key, 'description']
+
+        ret = {
+            'ids': y_key,
+            'video_features': batch_video_feature_convmap,
+            'caption_words': batch_caption,
+            'video_mask': batch_video_mask,
+            'caption_mask': batch_caption_mask,
+            'debug_sent': batch_debug_sent
+        }
+        return ret
+
     def next_batch(self, batch_size=64, include_extra=False, shuffle=True):
         if not hasattr(self, '_batch_it'):
             self._batch_it = itertools.cycle(self.iter_ids(shuffle=shuffle))
@@ -544,6 +581,8 @@ class DatasetLSMDC():
             return self.get_FIB_result(chunk)
         elif self.data_type == 'MC':
             return self.get_MC_result(chunk)
+        elif self.data_type == 'RET':
+            return self.get_CAP_result(chunk)
         else:
             raise Exception('data_type error in next_batch')
 
@@ -554,6 +593,9 @@ class DatasetLSMDC():
             for s in range(steps_in_epoch+1):
                 yield self.next_batch(batch_size,
                                       shuffle=shuffle)
+    # For retrieval eval
+    def next_tile(self, batch_size=64, y_keys=None, x_keys=None, include_extra=False):
+        return self.get_RET_result(y_keys, x_keys)
 
     def batch_tile(self, num_epochs, batch_size, neg=True):
         keys = self.ids

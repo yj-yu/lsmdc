@@ -8,6 +8,7 @@ from videocap.util import log
 
 from videocap.models.fib_model import FIBGenerator, FIBTrainer
 from videocap.models.mc_model import MCGenerator, MCTrainer
+from videocap.models.ret_model import RETGenerator, RETTrainer
 
 from videocap.datasets.batch_queue import BatchQueue
 from videocap.configuration import ModelConfig, TrainConfig
@@ -29,10 +30,12 @@ FLAGS = tf.flags.FLAGS
 MODELS = {
     'FIB': FIBGenerator,
     'MC' : MCGenerator,
+    'RET': RETGenerator,
 }
 MODEL_TRAINERS = {
     'FIB': FIBTrainer,
     'MC' : MCTrainer,
+    'RET': RETTrainer,
 }
 
 def main(argv):
@@ -65,10 +68,15 @@ def main(argv):
                                       wav_data = model_config.wav_data)
     train_dataset.build_word_vocabulary()
     validation_dataset.share_word_vocabulary_from(train_dataset)
+    if train_config.train_tag == 'RET':
+        model_config.batch_size = model_config.ret_batch_size
     train_iter = train_dataset.batch_iter(train_config.num_epochs, model_config.batch_size)
     train_queue = BatchQueue(train_iter, name='train')
-    val_iter = validation_dataset.batch_iter(20*train_config.num_epochs, model_config.batch_size, shuffle=False)
-    val_queue = BatchQueue(val_iter, name='test')
+    if train_config.train_tag == 'RET':
+        val_queue = BatchQueue(validation_dataset.batch_tile(20*train_config.num_epochs, model_config.batch_size))
+    else:
+        val_iter = validation_dataset.batch_iter(20*train_config.num_epochs, model_config.batch_size, shuffle=False)
+        val_queue = BatchQueue(val_iter, name='test')
     train_queue.start_threads()
     val_queue.start_threads()
 
