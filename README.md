@@ -59,7 +59,7 @@ add2virtualenv .
 
 ### Training
 
-modify `configuartion.py` to suit your environment.
+Modify `configuartion.py` to suit your environment.
 
   - train_tag can be 'MC', 'FIB'
 
@@ -68,4 +68,17 @@ Run `train.py`.
 ```
 python train.py --tag="tag"
 ```
+
+### Pretrained Model
+
+You can download the models and features in [gDrive Link](https://drive.google.com/open?id=1w86Rx2yvucUYQDTkew89h5KlRQPRcwHI)
+Modify 'configuration.py' to load the checkpoints (self.load_from_ckpt = 'path/to/checkpoint/')
+
+```
+[RET] R@1: 93, R@5: 247, R@10: 348, medr : 29
+[FIB] Accuracy: 45.1
+```
+
+You can get slightly lower or higher performance from these scores.
+
 
