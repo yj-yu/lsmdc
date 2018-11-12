@@ -115,6 +115,7 @@ class DatasetLSMDC():
         train_cap_df = pd.read_csv(train_cap_path, sep='\t')
         val_cap_df = pd.read_csv(val_cap_path, sep='\t')
         test_cap_df = pd.read_csv(test_cap_path, sep='\t')
+        par_cap_df = pd.read_csv(par_cap_path, sep='\t')
         if self.dataset_name == 'train':
             if self.data_type in ['MC']:
                 train_data_path = train_cap_path
@@ -125,6 +126,8 @@ class DatasetLSMDC():
                     data_df = pd.concat([data_df,val_fib_df])
                 if self.data_type in ['MC','CAP']:
                     val_cap_df = pd.read_csv(val_cap_path, sep='\t')
+                if self.data_type == 'RET':
+                    data_df = pd.concat([data_df, val_cap_df, par_cap_df])
         elif self.dataset_name == 'validation':
             data_df = pd.read_csv(val_data_path, sep='\t')
         elif self.dataset_name == 'test':
