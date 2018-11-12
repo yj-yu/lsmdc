@@ -1,5 +1,8 @@
-import time
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+import time
 import pprint
 import tensorflow as tf
 from videocap.datasets.lsmdc import DatasetLSMDC
@@ -19,6 +22,7 @@ from tqdm import tqdm
 import hickle as hkl
 import numpy as np
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 pp = pprint.PrettyPrinter(indent=2)
 
 tf.flags.DEFINE_string("tag","","Tag for test")
@@ -114,7 +118,7 @@ def main(argv):
                 trainer.log_step_message(**step_result)
 
             if step_result['current_step'] % train_config.steps_per_evaluate == 0 or train_config.print_evaluate:
-                trainer.evaluate(queue=val_queue, dataset=validation_dataset, generate_results=True, tag=FLAGS.tag)
+                trainer.evaluate(queue=val_queue, dataset=validation_dataset, global_step=step, generate_results=True, tag=FLAGS.tag)
 
                 print("SAVE MODEL"+FLAGS.tag)
                 saver.save(session, checkpoint_dir, global_step=step)

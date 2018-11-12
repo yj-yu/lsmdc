@@ -117,7 +117,7 @@ class DatasetLSMDC():
         test_cap_df = pd.read_csv(test_cap_path, sep='\t')
         par_cap_df = pd.read_csv(par_cap_path, sep='\t')
         if self.dataset_name == 'train':
-            if self.data_type in ['MC']:
+            if self.data_type in ['MC', 'RET']:
                 train_data_path = train_cap_path
             data_df = pd.read_csv(train_data_path, sep='\t')
             if self.more_data == True:
