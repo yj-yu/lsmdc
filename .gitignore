@@ -4,7 +4,8 @@ mc_logits
 train-*
 logs/
 fib_logits
-checkpoints/
+checkpoint/*
+!checkpoint/.keep
 videocap/checkpoint/*
 tags
 coco

@@ -53,7 +53,7 @@ class TrainConfig(object):
 
         self.steps_per_logging = 500
         self.steps_per_evaluate = 5000
-        self.train_tag = 'FIB'
+        self.train_tag = 'RET'
 
         self.load_from_ckpt = None
         self.print_evaluate = False

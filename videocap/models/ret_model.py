@@ -425,3 +425,6 @@ class RETTrainer(object):
             len(c10),medr = medr))
         log.infov("[RET] total accuracy: {acc:.5f}".format(acc=np.sum(acc)))
 
+        if generate_results:
+            with open('./checkpoint/evaluate_log.tsv', 'a') as f:
+                f.write('[{}]\t{}\t{}\t{}\t{}\t{}\n'.format(global_step, len(c), len(c5), len(c10), medr, np.sum(acc)))
